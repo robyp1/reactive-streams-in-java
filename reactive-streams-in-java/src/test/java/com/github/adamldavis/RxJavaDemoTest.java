@@ -40,6 +40,21 @@ public class RxJavaDemoTest {
     }
 
     @Test
+    public void testtestParallelFlatMap(){
+        demo.testParallelFlatMapMultiThread();
+    }
+
+    @Test
+    public void testtestParallelFlatMapSingleThread(){
+        demo.testParallelFlatMapSingleThread();
+    }
+
+    @Test
+    public void testtestParallelFlatMapMultiThreadErrorHandler(){
+        demo.testParallelFlatMapMultiThreadErrorHandler();
+    }
+
+    @Test
     public void testrunComputation() throws Exception {
         demo.runComputation();
         Thread.sleep(1100);

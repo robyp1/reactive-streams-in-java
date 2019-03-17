@@ -4,6 +4,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.Flow;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -230,5 +231,98 @@ public class RxJavaDemo implements ReactiveStreamsDemo {
                 .map(l -> l/1)
                 .blockingSubscribe(w-> System.out.println(w + " - " + Thread.currentThread().getName()));
     }
-    
+
+    /***es:
+     *  item  4 on thread RxNewThreadScheduler-1
+     *  item  6 on thread RxNewThreadScheduler-2
+     *  item  7 on thread RxNewThreadScheduler-3
+     * received item length 4 on thread main
+     * received item length 6 on thread main
+     * received item length 7 on thread main
+     */
+    public static void testParallelFlatMapMultiThread(){
+        Flowable.just("long", "longer", "longest")
+                .flatMap(
+                        v -> performLongOp(v)
+                                .doOnNext(k -> System.out.println( " item  " + k + " on thread " + Thread.currentThread().getName()))
+                                .subscribeOn(Schedulers.newThread()) //usa un thread diverso per Flowable ritornato
+                )
+                .onErrorReturnItem(500)
+                .blockingSubscribe(
+                        length ->System.out.println( "received item length " + length + " on thread " + Thread.currentThread().getName())
+                        , ex -> System.out.println( "error on item: " + ex.getMessage() + ", thread " + Thread.currentThread().getName())
+                );
+
+    }
+
+    /**
+     *  item  4 on thread main
+     *  item  6 on thread main
+     *  item  7 on thread main
+     * received item length 4 on thread main
+     * received item length 6 on thread main
+     * received item length 7 on thread main
+     */
+    public static void testParallelFlatMapSingleThread(){
+        Flowable.just("long", "longer", "longest")
+                .flatMap(
+                        v -> performLongOp(v)
+                                .doOnNext(k -> System.out.println( " item  " + k + " on thread " + Thread.currentThread().getName()))
+                                 //usa lo stesso thread di partenza in quanto manca il subscribeOn
+                )
+                .onErrorReturnItem(500)
+                .blockingSubscribe(
+                        length ->System.out.println( "received item length " + length + " on thread " + Thread.currentThread().getName())
+                        , ex -> System.out.println( "error on item: " + ex.getMessage() + ", thread " + Thread.currentThread().getName())
+                );
+
+    }
+
+    public static void testParallelFlatMapMultiThreadErrorHandler(){
+        Flowable.just("long", "longer", "longest")
+                .flatMap(
+                        v -> performLongOpWIthError(v)
+                                .subscribeOn(Schedulers.newThread()) //usa un thread diverso per Flowable
+                                .doOnNext(k -> System.out.println( " item  processed sucessfully " + k + " on thread " + Thread.currentThread().getName()))
+                        //usa lo stesso thread di partenza in quanto manca il subscribeOn
+                )
+                //.onErrorReturnItem(-1)//al primo errore il flow si interrompe e restituisce il codice -1, altrimenti scrive l'ex sotto
+                .blockingSubscribe(
+                        length ->System.out.println( "received item length " + length + " on thread " + Thread.currentThread().getName())
+                        , ex -> System.out.println( "error on item: " + ex.getMessage() + ", thread " + Thread.currentThread().getName())
+                );
+
+    }
+
+
+
+    private static Flowable<Integer> performLongOp(String v){
+        Random r = new Random ();
+        try {
+            int waiting = r.nextInt(10);
+                Thread.sleep(1000 * waiting);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return Flowable.just(v.length());
+    }
+
+    private static Flowable<Object> performLongOpWIthError(String v)  throws Exception {
+        Random r = new Random ();
+        try {
+            int waiting = r.nextInt(10);
+            if (waiting % 2 == 0) {
+            Thread.sleep(1000 * waiting);
+            }
+            else throw new Exception("ERrrrrrrrrr!!");
+
+        } catch (Exception e) {
+//            e.printStackTrace();
+            throw e;
+        }
+        return Flowable.just(v.length());
+    }
+
+
 }
