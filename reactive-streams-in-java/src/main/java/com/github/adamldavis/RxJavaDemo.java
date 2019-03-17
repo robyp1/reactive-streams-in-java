@@ -278,6 +278,13 @@ public class RxJavaDemo implements ReactiveStreamsDemo {
 
     }
 
+    /**
+     * Interrompe il flow appena incontra l'errore
+     *  item  processed sucessfully 4 on thread RxNewThreadScheduler-1 ..
+     * ..
+     * The error message is: ERrrrrrrrrr!!
+     * error on item: ERrrrrrrrrr!!, thread main
+     */
     public static void testParallelFlatMapMultiThreadErrorHandler(){
         Flowable.just("long", "longer", "longest")
                 .flatMap(
@@ -286,7 +293,10 @@ public class RxJavaDemo implements ReactiveStreamsDemo {
                                 .doOnNext(k -> System.out.println( " item  processed sucessfully " + k + " on thread " + Thread.currentThread().getName()))
                         //usa lo stesso thread di partenza in quanto manca il subscribeOn
                 )
-                //.onErrorReturnItem(-1)//al primo errore il flow si interrompe e restituisce il codice -1, altrimenti scrive l'ex sotto
+                //.onErrorReturnItem(-1)//al primo errore il flow si interrompe
+                // e restituisce il codice -1, che veiene stampanto sotto come se tutto fosse andato a buon fine,
+                // altrimenti scrive  l'ex sotto
+                .doOnError(error -> System.err.println("The error message is: " + error.getMessage()))
                 .blockingSubscribe(
                         length ->System.out.println( "received item length " + length + " on thread " + Thread.currentThread().getName())
                         , ex -> System.out.println( "error on item: " + ex.getMessage() + ", thread " + Thread.currentThread().getName())
