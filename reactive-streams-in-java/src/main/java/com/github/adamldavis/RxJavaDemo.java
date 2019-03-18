@@ -218,17 +218,25 @@ public class RxJavaDemo implements ReactiveStreamsDemo {
         }
     }
 
+    /**
+     * 8 *- RxComputationThreadPool-1
+     * 1 **- RxNewThreadScheduler-1
+     * 9 *- RxComputationThreadPool-1
+     * 3 **- RxNewThreadScheduler-1
+     * ...
+     */
     public static void doParallelComputation2(){
         List<Integer> squares = new ArrayList<>();
         Flowable.range(1,64)
                 .filter( v -> v % 2 == 0)
-                .doOnNext(w->System.out.println(w + " *- " + Thread.currentThread().getName()))
-                .subscribeOn(Schedulers.computation()) //uso il main thread per i numeri pari
+                .subscribeOn(Schedulers.computation()) //uso il computation thread per i numeri pari
                 .map(w -> w/2)
-                .doOnNext(w->System.out.println(w + " **- " + Thread.currentThread().getName()))
+                .doOnNext(w->System.out.println(w + " *- " + Thread.currentThread().getName()))
                 .observeOn(Schedulers.newThread()) //cambio e passo ad un altro thread per il subscribe
                 .filter(k -> k % 2 != 0) //e uso i numeri dispari
                 .map(l -> l/1)
+                .doOnNext(w->System.out.println(w + " **- " + Thread.currentThread().getName()))
+                //qui sempre il main thread del publisher/Flowable che ha fatto partire il processo
                 .blockingSubscribe(w-> System.out.println(w + " - " + Thread.currentThread().getName()));
     }
 
@@ -241,17 +249,18 @@ public class RxJavaDemo implements ReactiveStreamsDemo {
      * received item length 7 on thread main
      */
     public static void testParallelFlatMapMultiThread(){
-        Flowable.just("long", "longer", "longest")
+        Flowable.just("long", "longer", "longest") //colui che emette ( observable o publisher(Flowable impl.  Publisher))
+                //.observeOn(Schedulers.computation()) //posso cambiare il thread che esegue la performLongOp se scommento
                 .flatMap(
-                        v -> performLongOp(v)
-                                .subscribeOn(Schedulers.newThread()) //usa un thread diverso per Flowable ritornato
-                                .doOnNext(k ->
+                        v -> performLongOp(v) //qua cè il thread main
+                                .subscribeOn(Schedulers.newThread()) //usa un thread diverso per l'elaborazione dell 'op performLongOp
+                                .doOnNext(k -> //questo è il subscribe (observer)
                                 {   String time = Long.valueOf(System.nanoTime()).toString();
                                     System.out.println( " item  " + k + " on thread " + Thread.currentThread().getName()  + " - " + time);
                                 })
                 )
                 .onErrorReturnItem(500)
-                .blockingSubscribe(
+                .blockingSubscribe( //questo è sempre il main thread di  del publisher/Flowable inziale (che emette)!
                         length ->System.out.println( "received item length " + length + " on thread " + Thread.currentThread().getName())
                         , ex -> System.out.println( "error on item: " + ex.getMessage() + ", thread " + Thread.currentThread().getName())
                 );
