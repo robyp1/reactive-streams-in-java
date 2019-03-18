@@ -118,12 +118,29 @@ public class RxJavaDemoTest {
                 .zipWith(tick, (string, index) -> index + "-" + string);//4
         TestObserver<String> testObserver = observable
                 .subscribeOn(scheduler).test();//5
-
+        //avanza di 2-3 secondi in modo che possano essere emesse dal tick alemeno due parole in observable, altrimenti
+        //il test terminerebbe prima dei 2 secondi che usa il tick per generare un numero(1 al secondo)
         scheduler.advanceTimeBy(2300, TimeUnit.MILLISECONDS);//6
 
         testObserver.assertNoErrors(); //7
         testObserver.assertValues("0-foo", "1-bar");
         testObserver.assertNotComplete();
+    }
+
+    @Test
+    public void testScheduler2(){
+        TestScheduler testScheduler = new TestScheduler();
+        Observable<Long> tick = Observable.interval(1, TimeUnit.SECONDS, testScheduler);
+        Observable<Long> observable =
+                Observable.just(1l, 2l, 3l,4l,5l,6l,7l,8l,9l,10l).zipWith(
+                        tick, (num, addend) -> num +  addend);
+        TestObserver<Long> testObserver = observable.subscribeOn(testScheduler).test();
+        testScheduler.advanceTimeBy(500, TimeUnit.SECONDS);
+
+        testObserver.values();
+        testObserver.assertNoErrors();
+        testObserver.assertValues(1l, 3l,5l,7l,9l,11l,13l,15l,17l,19l);
+        testObserver.assertComplete(); // questo test invece deve completare
     }
 
 }
