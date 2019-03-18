@@ -244,8 +244,11 @@ public class RxJavaDemo implements ReactiveStreamsDemo {
         Flowable.just("long", "longer", "longest")
                 .flatMap(
                         v -> performLongOp(v)
-                                .doOnNext(k -> System.out.println( " item  " + k + " on thread " + Thread.currentThread().getName()))
                                 .subscribeOn(Schedulers.newThread()) //usa un thread diverso per Flowable ritornato
+                                .doOnNext(k ->
+                                {   String time = Long.valueOf(System.nanoTime()).toString();
+                                    System.out.println( " item  " + k + " on thread " + Thread.currentThread().getName()  + " - " + time);
+                                })
                 )
                 .onErrorReturnItem(500)
                 .blockingSubscribe(
@@ -267,7 +270,10 @@ public class RxJavaDemo implements ReactiveStreamsDemo {
         Flowable.just("long", "longer", "longest")
                 .flatMap(
                         v -> performLongOp(v)
-                                .doOnNext(k -> System.out.println( " item  " + k + " on thread " + Thread.currentThread().getName()))
+                                .doOnNext(k ->
+                                        {   String time = Long.valueOf(System.nanoTime()).toString();
+                                            System.out.println( " item  " + k + " on thread " + Thread.currentThread().getName()  + " - " + time);
+                                        })
                                  //usa lo stesso thread di partenza in quanto manca il subscribeOn
                 )
                 .onErrorReturnItem(500)
@@ -310,7 +316,11 @@ public class RxJavaDemo implements ReactiveStreamsDemo {
         Random r = new Random ();
         try {
             int waiting = r.nextInt(10);
+            String time = Long.valueOf(System.nanoTime()).toString();
+            System.out.println(Thread.currentThread().getName() + " waiting " + (1000*waiting) +  " ms in time " + time);
                 Thread.sleep(1000 * waiting);
+            time = Long.valueOf(System.nanoTime()).toString();
+            System.out.println(Thread.currentThread().getName() + " waiting finish in time  " + time);
         } catch (Exception e) {
             e.printStackTrace();
         }
