@@ -47,11 +47,14 @@ public class ReactorDemo implements ReactiveStreamsDemo {
     }
 
     public static List<Integer> doParallelSquares() {
-        return Flux.range(1, 64).flatMap(v -> // 1
+        return Flux.range(1, 64)
+                .flatMap(v -> // 1
             Mono.just(v).subscribeOn(Schedulers.parallel()).map(w -> w * w))
                 .doOnError(ex -> ex.printStackTrace()) // 2
                 .doOnComplete(() -> System.out.println("Completed")) // 3
-                .subscribeOn(Schedulers.immediate()).collectList().block();
+                .subscribeOn(Schedulers.immediate()).
+                        doOnNext(v -> System.out.println("* " + Thread.currentThread().getName())).
+                        collectList().block();
     }
 
     @Override
@@ -83,10 +86,13 @@ public class ReactorDemo implements ReactiveStreamsDemo {
                 (stringBuilder, o) -> stringBuilder.append(o);
         return Flux.range(0, count)
                 .map(i -> "i=" + i)
-                .window(10)
+                .window(10) //crea un flux per ogni 10 elementi
                 .flatMap(flux -> flux.subscribeOn(Schedulers.parallel())
+                        .doOnNext(v -> System.out.println("parallel flux " + v + " run in " + Thread.currentThread().getName()))
                         .collect(() -> new StringBuilder(), collector))
+                .doOnNext(v -> System.out.println("dal parallel flux torna" + v + " run in " + Thread.currentThread().getName()))
                 .collect(() -> new StringBuilder(), collector)
+                .doOnNext(v -> System.out.println("merge dei paralleli " + v + " run in " + Thread.currentThread().getName()))
                 .map(StringBuilder::toString)
                 .single().toFuture();
     }

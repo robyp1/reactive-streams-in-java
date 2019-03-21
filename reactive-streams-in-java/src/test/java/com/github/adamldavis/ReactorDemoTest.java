@@ -143,4 +143,9 @@ public class ReactorDemoTest {
         assertEquals(11, list.size());
     }
 
+
+    @Test
+    public void testdoParallelStringConcatAsync() throws ExecutionException, InterruptedException {
+        System.out.println(demo.doParallelStringConcatAsync(20).get());
+    }
 }
