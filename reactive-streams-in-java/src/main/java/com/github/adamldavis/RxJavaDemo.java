@@ -249,6 +249,7 @@ public class RxJavaDemo implements ReactiveStreamsDemo {
      * received item length 7 on thread main
      */
     public static void testParallelFlatMapMultiThread(){
+        int i = 4;
         Flowable.just("long", "longer", "longest") //colui che emette ( observable o publisher(Flowable impl.  Publisher))
                 //.observeOn(Schedulers.computation()) //posso cambiare il thread che esegue la performLongOp se scommento
                 .flatMap(
@@ -257,9 +258,11 @@ public class RxJavaDemo implements ReactiveStreamsDemo {
                                 .doOnNext(k -> //questo è il subscribe (observer)
                                 {   String time = Long.valueOf(System.nanoTime()).toString();
                                     System.out.println( " item  " + k + " on thread " + Thread.currentThread().getName()  + " - " + time);
+                                    //if (k==4) { Thread.sleep(Integer.MAX_VALUE); } così si blocca solo il thread che elabora item 4, gli altri non si bloccano
                                 })
                 )
                 .onErrorReturnItem(500)
+                //.doOnNext( c-> {if (c==4) { Thread.sleep(Integer.MAX_VALUE); }})//si blocca il thread main del publisher/flow
                 .blockingSubscribe( //questo è sempre il main thread di  del publisher/Flowable inziale (che emette)!
                         length ->System.out.println( "received item length " + length + " on thread " + Thread.currentThread().getName())
                         , ex -> System.out.println( "error on item: " + ex.getMessage() + ", thread " + Thread.currentThread().getName())
@@ -303,8 +306,8 @@ public class RxJavaDemo implements ReactiveStreamsDemo {
     public static void testParallelFlatMapMultiThreadErrorHandler(){
         Flowable.just("long", "longer", "longest")
                 .flatMap(
-                        v -> performLongOpWIthError(v)
-                                .subscribeOn(Schedulers.newThread()) //usa un thread diverso per Flowable
+                        v -> performLongOpWIthError(v)//qua cè il thread main
+                                .subscribeOn(Schedulers.newThread()) //da qua usa un thread diverso per il subscribe
                                 .doOnNext(k -> System.out.println( " item  processed sucessfully " + k + " on thread " + Thread.currentThread().getName()))
                         //usa lo stesso thread di partenza in quanto manca il subscribeOn
                 )
