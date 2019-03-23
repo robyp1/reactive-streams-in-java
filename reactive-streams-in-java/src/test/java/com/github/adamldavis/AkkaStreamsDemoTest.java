@@ -48,13 +48,14 @@ public class AkkaStreamsDemoTest {
     @Test
     public void testPrintErrors() {
         // given
-        demo.setChannel(channel);
+        demo.setChannel(channel); //consuma i messaggi
         // when
-        demo.printErrors();
+        demo.printErrors(); //scrivi dagli 8 ai 16 messaggi nella akka source
 
         int count = 201;
 
-        for (int i = 0; i < count; i++) {
+        for (int i = 0; i < count; i++) {//scrive sulla deque che verrà processata dalla poll (Vedi in set chanel), la source viene riempita (max 16)
+            //o fino ad un minimo di 8 msg, dopodichè la publish scrive sulla queue e la poll processa un elemento alla volta man mano che questo è resto disponilbile
             channel.publish("Error: " + i);
         }
         try { Thread.sleep(2000); } catch (Exception e) { throw new RuntimeException(e); }

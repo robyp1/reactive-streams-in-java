@@ -43,6 +43,14 @@ public class ReactorDemoTest {
                 .expectErrorMessage("error")
                 .verify();
     }
+    @Test
+    public void testStepVerifier_Mono_empty() {
+        Mono<String> monoError = Mono.empty();
+
+        StepVerifier.create(monoError)
+                .expectComplete()
+                .verify();
+    }
 
     @Test
     public void testStepVerifier_Mono_foo() {
@@ -76,6 +84,8 @@ public class ReactorDemoTest {
                 .verifyComplete();
     }
 
+
+
     @Test
     public void testStepVerifier_Context_Right() {
         Flux<Integer> flux = Flux.just(1);
@@ -85,6 +95,18 @@ public class ReactorDemoTest {
 
         StepVerifier.create(stringFlux.subscriberContext(Context.of("pid", 123)))
                 .expectNext("1 pid: 123")
+                .verifyComplete();
+    }
+
+    @Test
+    public void testStepVerifier_Context_Right2() {
+        Flux<Integer> flux = Flux.just(1,2,3);
+        Flux<String> stringFlux = flux.flatMap(i -> Mono.subscriberContext().map(ctx -> i + " pid: " + ctx.getOrDefault("pid", 0)));
+
+        StepVerifier.create(stringFlux.subscriberContext(Context.of("pid", 123)))
+                .expectNext("1 pid: 123")
+                .expectNext("2 pid: 123")
+                .expectNext("3 pid: 123")
                 .verifyComplete();
     }
 

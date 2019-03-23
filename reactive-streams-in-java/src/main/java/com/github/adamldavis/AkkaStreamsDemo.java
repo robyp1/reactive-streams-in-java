@@ -133,9 +133,17 @@ public class AkkaStreamsDemo implements ReactiveStreamsDemo {
 
     Publisher<String> publisher;
 
+    /**
+     * il publisher viene agganciato alla sorgente akka vedi getMessages sopra che è quella che produce
+     * da 8 a 16 msg alla volta , il msg prodotto viene definito da chanell.publish chaimata in in testPrintErrors
+     * il poll viene chiamato dalla onrequest in funzione del sink che è un akka sink per cui vengono consumati
+     * appunto gli 8 a 16 msg paralleli, il poll legge dalla deque riempita dalla channel.publish e accetta
+     * di aver consumato il msg dai sui listener che sono i sink:next aggiunti qua sotto dal channerl.register
+     * @param channel
+     */
     public void setChannel(Channel channel) {
         publisher = Flux.create(sink -> {
-            sink.onRequest(channel::poll)
+            sink.onRequest(channel::poll)//onRequest chiama poll  con n = 16 poi 8 (che è la dim del buffer in createMaterializer che è tipo Scheduler) ed elabora in parallelo tutti gli n e poi per ognuno chiama next (listener.accept in loop())
                 .onCancel(channel::cancel)
                 .onDispose(channel::close);
             channel.register(sink::next);
