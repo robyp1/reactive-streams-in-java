@@ -124,7 +124,7 @@ public class AkkaStreamsDemo implements ReactiveStreamsDemo {
                 .buffer(200, OverflowStrategy.fail())
                 .alsoTo(Sink.foreach(messageList::add)).map(m -> m.toString()); // 4
 
-        errors.runWith(Sink.foreach(System.out::println), mat); // 5
+        errors.runWith(Sink.foreach(errormsg -> System.out.println(errormsg + " - " + System.nanoTime())), mat); // 5
     }
 
     public Source<String, NotUsed> getMessages() {

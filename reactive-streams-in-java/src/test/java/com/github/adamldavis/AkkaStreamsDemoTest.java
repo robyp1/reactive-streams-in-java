@@ -54,9 +54,12 @@ public class AkkaStreamsDemoTest {
 
         int count = 201;
 
+        channel.publish("OK ");//questo viene filtrato e scartato dal printErrors
+
         for (int i = 0; i < count; i++) {//scrive sulla deque che verrà processata dalla poll (Vedi in set chanel), la source viene riempita (max 16)
             //o fino ad un minimo di 8 msg, dopodichè la publish scrive sulla queue e la poll processa un elemento alla volta man mano che questo è resto disponilbile
             channel.publish("Error: " + i);
+            System.out.println("Publish " + System.nanoTime());
         }
         try { Thread.sleep(2000); } catch (Exception e) { throw new RuntimeException(e); }
         // then

@@ -32,6 +32,7 @@ public class Channel extends Thread {
     public void poll(long n) {
         synchronized (deque) {
             pollCount.getAndAdd(n);
+            System.out.println(n + " - " + System.nanoTime());
             System.out.println("--> poll (" + n + ") called");
             if (!isAlive()) start();
         }
