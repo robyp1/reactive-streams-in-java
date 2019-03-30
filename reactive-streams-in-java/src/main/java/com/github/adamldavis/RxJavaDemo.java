@@ -1,27 +1,24 @@
 package com.github.adamldavis;
 
+import io.reactivex.BackpressureStrategy;
+import io.reactivex.Flowable;
+import io.reactivex.Observable;
+import io.reactivex.Single;
+import io.reactivex.functions.BiConsumer;
+import io.reactivex.schedulers.Schedulers;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.Flow;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
-
-import io.reactivex.BackpressureStrategy;
-import io.reactivex.Observable;
-import io.reactivex.Single;
-import io.reactivex.functions.BiConsumer;
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-
-import io.reactivex.Flowable;
-import io.reactivex.schedulers.Schedulers;
 
 /**
  * Demonstrates RxJava 2 in action.
@@ -251,7 +248,7 @@ public class RxJavaDemo implements ReactiveStreamsDemo {
     public static void testParallelFlatMapMultiThread(){
         int i = 4;
         Flowable.just("long", "longer", "longest") //colui che emette ( observable o publisher(Flowable impl.  Publisher))
-                //.observeOn(Schedulers.computation()) //posso cambiare il thread che esegue la performLongOp se scommento
+                .observeOn(Schedulers.computation()) //posso cambiare il thread che esegue la performLongOp se scommento
                 .flatMap(
                         v -> performLongOp(v) //qua cè il thread main
                                 .subscribeOn(Schedulers.newThread()) //usa un thread diverso per l'elaborazione dell 'op performLongOp

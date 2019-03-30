@@ -54,7 +54,7 @@ public class ReactorDemo implements ReactiveStreamsDemo {
                 .doOnComplete(() -> System.out.println("Completed")) // 3
                 .subscribeOn(Schedulers.immediate()).
                         doOnNext(v -> System.out.println("* " + Thread.currentThread().getName())).
-                        collectList().block();
+                        collectList().log().block();
     }
 
     @Override

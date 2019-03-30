@@ -178,6 +178,7 @@ public class ReactorDemoTest {
     /**
      * estrae da un file txt di un libro l'autore e il titolo, rimpiazza autore con by e toglie title:
      * concatena poi le due stringhe estratte titolo + by Autore e le stampa con il donext sulla console
+     * il secondo metodo invece stampa ogni riga del file txt usando thread parallelo
      * @throws URISyntaxException
      */
     @Test
@@ -185,7 +186,11 @@ public class ReactorDemoTest {
         URI uri = ClassLoader.getSystemResource("prova.txt").toURI();//vedere in test/resources
         FileStreamReader fileStreamReader = new FileStreamReader();
         fileStreamReader.fluxVersion(Paths.get(uri))
-        .doOnNext(System.out::println).blockLast();
+        .doOnNext(System.out::println)
+                .doOnComplete(()->System.out.println("*****************************finish fluxVersion *******************"))
+                .log().blockLast();
+        //stampa una riga alla volta del file txt
+        fileStreamReader.extractLinesParallel(Paths.get(uri));
 
     }
 }
