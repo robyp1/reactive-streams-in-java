@@ -1,14 +1,5 @@
 package com.github.adamldavis;
 
-import static com.github.adamldavis.DemoData.*;
-import static org.junit.Assert.*;
-
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
-
 import org.junit.Test;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
@@ -16,6 +7,19 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 import reactor.test.publisher.TestPublisher;
 import reactor.util.context.Context;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.file.Paths;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
+
+import static com.github.adamldavis.DemoData.squares;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 
 public class ReactorDemoTest {
 
@@ -160,7 +164,7 @@ public class ReactorDemoTest {
     @Test(timeout = 1000)
     public void testGenerate() {
         Flux<Long> flux = ReactorDemo.exampleSquaresUsingGenerate();
-        List<Long> list = flux.collectList().block();
+        List<Long> list = flux.collectList().doOnNext(System.out::println).block();
 
         assertEquals(11, list.size());
     }
@@ -169,5 +173,19 @@ public class ReactorDemoTest {
     @Test
     public void testdoParallelStringConcatAsync() throws ExecutionException, InterruptedException {
         System.out.println(demo.doParallelStringConcatAsync(20).get());
+    }
+
+    /**
+     * estrae da un file txt di un libro l'autore e il titolo, rimpiazza autore con by e toglie title:
+     * concatena poi le due stringhe estratte titolo + by Autore e le stampa con il donext sulla console
+     * @throws URISyntaxException
+     */
+    @Test
+    public void testReadFile() throws URISyntaxException {
+        URI uri = ClassLoader.getSystemResource("prova.txt").toURI();//vedere in test/resources
+        FileStreamReader fileStreamReader = new FileStreamReader();
+        fileStreamReader.fluxVersion(Paths.get(uri))
+        .doOnNext(System.out::println).blockLast();
+
     }
 }
