@@ -62,7 +62,7 @@ public class AsyncFileListRxStrategy extends AsyncFileListStrategies {
                     .flatMap(filew ->
                             Flowable.just(filew)
                                     .subscribeOn(Schedulers.io()) // execute on multiple threads
-                                    .map(fs -> readFileFunctionWithReturn(fs))
+                                    .map(fs -> printSizeOf(fs))
                                     .doOnNext(f->th.add(filew.getName()))
                     )
                     .subscribeOn(Schedulers.io())//cambia il thread principale da main a io (sale su, upstream)

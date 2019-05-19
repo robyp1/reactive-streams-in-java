@@ -15,7 +15,7 @@ public abstract class AsyncFileListStrategies {
 
     public abstract void countFileInaDirParallel() throws Exception;
 
-    protected Long readFileFunctionWithReturn(File file) {
+    protected Long printSizeOf(File file) {
         if (debug)
             System.out.println("size in byte of " + file.getAbsolutePath() +  ": " + file.length());
         return Long.valueOf(file.length());
